@@ -10,7 +10,7 @@ def home():
     return "Gemini Analytics Pipeline is Live!"
 
 # =====================================================================
-# 🚀 UPDATED GEMINI ANALYSIS LOGIC (With Production API Routing)
+# 🚀 FULLY FIXED GEMINI ANALYSIS LOGIC (With Production Routing & Fixed Config)
 # =====================================================================
 
 def analyze_guest_trends(messy_chat_logs: str):
@@ -24,17 +24,20 @@ def analyze_guest_trends(messy_chat_logs: str):
         http_options={"api_version": "v1"}
     )
     
+    # In the new SDK, system instructions are passed inside GenerateContentConfig
+    config = types.GenerateContentConfig(
+        system_instruction=(
+            "You are an advanced corporate business analyst. Scan the provided raw "
+            "hotel chat logs. Count and classify customer needs into categories: "
+            "'Maintenance', 'Room Service', 'Complaints', or 'Inquiries'. "
+            "Output your final calculations strictly as a clean JSON object."
+        )
+    )
+    
     response = client.models.generate_content(
         model='gemini-1.5-flash',
         contents=messy_chat_logs,
-        config=types.GenerateContentConfig(
-            system_instruction=(
-                "You are an advanced corporate business analyst. Scan the provided raw "
-                "hotel chat logs. Count and classify customer needs into categories: "
-                "'Maintenance', 'Room Service', 'Complaints', or 'Inquiries'. "
-                "Output your final calculations strictly as a clean JSON object."
-            )
-        )
+        config=config
     )
     return response.text
 
