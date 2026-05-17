@@ -1,58 +1,49 @@
 import os
 from flask import Flask, jsonify
 from google import genai
+from pydantic import BaseModel, Field
 
 app = Flask(__name__)
 
-# Global client routing safely to the production endpoint
-client = genai.Client(
-    api_key=os.environ.get("GEMINI_API_KEY"),
-    http_options={"api_version": "v1"}
-)
-
-@app.route('/')
-def home():
-    return "Gemini Analytics Pipeline is Live!"
+# Initialize the new SDK client naturally
+client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 # =====================================================================
-# 🚀 CORE DATA ANALYSIS PIPELINE (Clean JSON Version)
+# 📊 STRUCTURED RESPONSE DATA MODEL
 # =====================================================================
 
-def analyze_guest_trends(messy_chat_logs: str):
+class AnalyticsResult(BaseModel):
+    Maintenance: int = Field(description="Count of incidents regarding broken equipment or fixes.")
+    Room_Service: int = Field(alias="Room Service", default=0, description="Count of requests for items, food, or amenities.")
+    Complaints: int = Field(description="Count of general customer grievances or negative feedback.")
+    Inquiries: int = Field(description="Count of standard policy questions, check-out times, or info updates.")
+
+# =====================================================================
+# 🚀 CORE DATA ANALYSIS PIPELINE
+# =====================================================================
+
+def analyze_guest_trends(messy_chat_logs: str) -> str:
     """
-    Injects instructions natively and strips any markdown wrappers
-    to ensure clean JSON data delivery.
+    Leverages native structured schema configurations to guarantee an
+    isolated, valid JSON output string from Gemini 1.5 Flash.
     """
-    system_prompt = (
-        "You are an advanced corporate business analyst. Scan the provided raw "
-        "hotel chat logs. Count and classify customer needs into categories: "
-        "'Maintenance', 'Room Service', 'Complaints', or 'Inquiries'. "
-        "Output your final calculations strictly as a clean JSON object."
+    prompt = (
+        f"You are an advanced corporate business analyst. Scan the provided raw "
+        f"hotel chat logs, extract the relevant occurrences, and structure the "
+        f"output frequencies precisely following the schema.\n\n"
+        f"Logs:\n{messy_chat_logs}"
     )
-    
-    contents = [
-        {"role": "system", "parts": [{"text": system_prompt}]},
-        {"role": "user", "parts": [{"text": messy_chat_logs}]}
-    ]
-    
+
     response = client.models.generate_content(
         model='gemini-1.5-flash',
-        contents=contents
+        contents=prompt,
+        config={
+            "response_mime_type": "application/json",
+            "response_schema": AnalyticsResult
+        }
     )
     
-    raw_text = response.text.strip()
-    
-    # Clean off any markdown wrapping code blocks if the model generates them
-    if raw_text.startswith("```"):
-        # Strip off the top line (like ```json) and the bottom backticks
-        lines = raw_text.splitlines()
-        if lines[0].startswith("```"):
-            lines = lines[1:]
-        if lines[-1].startswith("```"):
-            lines = lines[:-1]
-        raw_text = "\n".join(lines).strip()
-        
-    return raw_text
+    return response.text
 
 # =====================================================================
 # 🔌 LIVE TESTING ROUTE
@@ -66,10 +57,14 @@ def test_analysis():
             "Room 215 complained AC is broken. Room 102 asked about checkout time."
         )
         analysis_result = analyze_guest_trends(sample_log)
-        # Returns the raw clean string explicitly marked as an application/json header
+        # Returns the structured string payload directly as application/json headers
         return analysis_result, 200, {'Content-Type': 'application/json'}
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/')
+def home():
+    return "Gemini Analytics Pipeline is Live!"
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
