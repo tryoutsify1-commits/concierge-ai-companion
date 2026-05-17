@@ -1,5 +1,5 @@
 azure-ai-projects
 azure-identity
-google-generativeai
+google-genai
 pandas
 flask
