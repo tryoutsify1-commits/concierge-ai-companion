@@ -1,7 +1,6 @@
 import os
 from flask import Flask
 from google import genai
-from google.genai import types
 
 app = Flask(__name__)
 
@@ -10,7 +9,7 @@ def home():
     return "Gemini Analytics Pipeline is Live!"
 
 # =====================================================================
-# 🚀 FULLY FIXED GEMINI ANALYSIS LOGIC (With Production Routing & Fixed Config)
+# 🚀 FULLY FIXING THE CONFIG PAYLOAD
 # =====================================================================
 
 def analyze_guest_trends(messy_chat_logs: str):
@@ -18,21 +17,21 @@ def analyze_guest_trends(messy_chat_logs: str):
     Utilizes Gemini 1.5 Flash to sweep through raw chat history,
     categorize customer complaints, and output structured JSON data.
     """
-    # Force production v1 routing to prevent v1beta 404 exceptions
+    # Enforce stable v1 routing
     client = genai.Client(
         api_key=os.environ.get("GEMINI_API_KEY"),
         http_options={"api_version": "v1"}
     )
     
-    # In the new SDK, system instructions are passed inside GenerateContentConfig
-    config = types.GenerateContentConfig(
-        system_instruction=(
+    # Passing the config as a clean dictionary avoids the SDK payload mapping issue
+    config = {
+        "system_instruction": (
             "You are an advanced corporate business analyst. Scan the provided raw "
             "hotel chat logs. Count and classify customer needs into categories: "
             "'Maintenance', 'Room Service', 'Complaints', or 'Inquiries'. "
             "Output your final calculations strictly as a clean JSON object."
         )
-    )
+    }
     
     response = client.models.generate_content(
         model='gemini-1.5-flash',
@@ -56,4 +55,3 @@ except Exception as e:
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-    
