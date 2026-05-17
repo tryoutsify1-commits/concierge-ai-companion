@@ -1,6 +1,5 @@
 import os
 from flask import Flask
-# Import the brand new SDK client
 from google import genai
 from google.genai import types
 
@@ -11,7 +10,7 @@ def home():
     return "Gemini Analytics Pipeline is Live!"
 
 # =====================================================================
-# 🚀 UPDATED GEMINI ANALYSIS LOGIC (Using the modernized google-genai SDK)
+# 🚀 UPDATED GEMINI ANALYSIS LOGIC (With Production API Routing)
 # =====================================================================
 
 def analyze_guest_trends(messy_chat_logs: str):
@@ -19,8 +18,11 @@ def analyze_guest_trends(messy_chat_logs: str):
     Utilizes Gemini 1.5 Flash to sweep through raw chat history,
     categorize customer complaints, and output structured JSON data.
     """
-    # Initialize the new client (it natively detects your GEMINI_API_KEY environment variable)
-    client = genai.Client()
+    # Force production v1 routing to prevent v1beta 404 exceptions
+    client = genai.Client(
+        api_key=os.environ.get("GEMINI_API_KEY"),
+        http_options={"api_version": "v1"}
+    )
     
     response = client.models.generate_content(
         model='gemini-1.5-flash',
