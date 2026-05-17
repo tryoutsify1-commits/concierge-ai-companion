@@ -1,5 +1,4 @@
-azure-ai-projects
-azure-identity
-google-genai
-pandas
 flask
+google-genai
+pydantic
+blinker>=1.7.0
