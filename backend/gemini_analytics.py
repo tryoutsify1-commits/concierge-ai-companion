@@ -21,4 +21,6 @@ def analyze_guest_trends(messy_chat_logs: str):
     
     response = model.generate_content(messy_chat_logs)
     return response.text
-import time; while True: time.sleep(3600)
+import time
+while True:
+    time.sleep(3600)
