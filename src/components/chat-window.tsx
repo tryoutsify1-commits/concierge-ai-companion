@@ -11,7 +11,6 @@ import {
   Conversation,
   ConversationContent,
   ConversationScrollButton,
-  ConversationEmptyState,
 } from "@/components/ai-elements/conversation";
 import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
 import { Shimmer } from "@/components/ai-elements/shimmer";
@@ -109,18 +108,18 @@ export function ChatWindow({
       <Conversation className="relative flex-1 bg-background">
         <ConversationContent className="mx-auto w-full max-w-3xl px-6 py-8">
           {messages.length === 0 ? (
-            <ConversationEmptyState
-              className="py-12"
-              icon={
-                <img
-                  src={soleneMark}
-                  alt=""
-                  className="h-24 w-24 object-contain opacity-90"
-                />
-              }
-              title={<span className="font-display text-3xl text-foreground">Comment puis-je vous aider ce soir ?</span>}
-              description="Reservations, recommendations, in-suite requests — all attended to with care."
-            >
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <img
+                src={soleneMark}
+                alt=""
+                className="h-24 w-24 object-contain opacity-90"
+              />
+              <h2 className="mt-6 font-display text-3xl text-foreground">
+                Comment puis-je vous aider ce soir ?
+              </h2>
+              <p className="mt-2 max-w-md text-sm text-muted-foreground">
+                Reservations, recommendations, in-suite requests — all attended to with care.
+              </p>
               <div className="mt-8 grid w-full max-w-xl grid-cols-1 gap-2 sm:grid-cols-2">
                 {SUGGESTIONS.map((s) => (
                   <button
@@ -133,7 +132,7 @@ export function ChatWindow({
                   </button>
                 ))}
               </div>
-            </ConversationEmptyState>
+            </div>
           ) : (
             <div className="space-y-6">
               {messages.map((m) => {
