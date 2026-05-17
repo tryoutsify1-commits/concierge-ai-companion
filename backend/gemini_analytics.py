@@ -15,13 +15,13 @@ def home():
     return "Gemini Analytics Pipeline is Live!"
 
 # =====================================================================
-# 🚀 CORE DATA ANALYSIS PIPELINE (Role-Based Structural Override)
+# 🚀 CORE DATA ANALYSIS PIPELINE (Clean JSON Version)
 # =====================================================================
 
 def analyze_guest_trends(messy_chat_logs: str):
     """
-    Injects the corporate instructions natively into the contents array
-    as a 'system' role block, completely avoiding the buggy config parser.
+    Injects instructions natively and strips any markdown wrappers
+    to ensure clean JSON data delivery.
     """
     system_prompt = (
         "You are an advanced corporate business analyst. Scan the provided raw "
@@ -30,7 +30,6 @@ def analyze_guest_trends(messy_chat_logs: str):
         "Output your final calculations strictly as a clean JSON object."
     )
     
-    # Passing both the role-based prompt and data inside the contents list
     contents = [
         {"role": "system", "parts": [{"text": system_prompt}]},
         {"role": "user", "parts": [{"text": messy_chat_logs}]}
@@ -40,7 +39,20 @@ def analyze_guest_trends(messy_chat_logs: str):
         model='gemini-1.5-flash',
         contents=contents
     )
-    return response.text
+    
+    raw_text = response.text.strip()
+    
+    # Clean off any markdown wrapping code blocks if the model generates them
+    if raw_text.startswith("```"):
+        # Strip off the top line (like ```json) and the bottom backticks
+        lines = raw_text.splitlines()
+        if lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines[-1].startswith("```"):
+            lines = lines[:-1]
+        raw_text = "\n".join(lines).strip()
+        
+    return raw_text
 
 # =====================================================================
 # 🔌 LIVE TESTING ROUTE
@@ -54,6 +66,7 @@ def test_analysis():
             "Room 215 complained AC is broken. Room 102 asked about checkout time."
         )
         analysis_result = analyze_guest_trends(sample_log)
+        # Returns the raw clean string explicitly marked as an application/json header
         return analysis_result, 200, {'Content-Type': 'application/json'}
     except Exception as e:
         return jsonify({"error": str(e)}), 500
