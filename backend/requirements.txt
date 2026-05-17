@@ -2,3 +2,4 @@ azure-ai-projects
 azure-identity
 google-generativeai
 pandas
+flask
